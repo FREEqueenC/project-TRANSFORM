@@ -220,7 +220,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   private audioCtx: AudioContext | null = null;
   private analyser: AnalyserNode | null = null;
   private dataArray: Uint8Array | null = null;
-  private loopTimer: any = null;
+  private loopTimer: ReturnType<typeof setTimeout> | null = null;
   private isPlaying = false;
 
   // -- VISUAL STATE --
@@ -349,13 +349,13 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     return parseFloat(targetFreqMHz.toFixed(2));
   }
 
-  updateRadius(event: any) {
-    this.radius = parseFloat(event.target.value);
+  updateRadius(event: Event) {
+    this.radius = parseFloat((event.target as HTMLInputElement).value);
     this.updateCalculations();
   }
 
-  updateHeight(event: any) {
-    this.height = parseFloat(event.target.value);
+  updateHeight(event: Event) {
+    this.height = parseFloat((event.target as HTMLInputElement).value);
   }
 
   resizeCanvas() {
@@ -396,8 +396,11 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     try {
       // Create AudioContext if needed
       if (!this.audioCtx) {
-        this.audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-        console.log('AudioContext created, state:', this.audioCtx.state);
+        const AudioContextClass = window.AudioContext || (window as unknown as WindowWithWebkit).webkitAudioContext;
+        if (AudioContextClass) {
+          this.audioCtx = new AudioContextClass();
+        }
+        console.log('AudioContext created, state:', this.audioCtx?.state);
       }
 
       // CRITICAL: Explicitly resume AudioContext (required for deployed sites)
@@ -579,7 +582,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
 
     // A. READ AUDIO INTENSITY
     if (this.analyser && this.dataArray && this.isPlaying) {
-      this.analyser.getByteFrequencyData(this.dataArray as any);
+      this.analyser.getByteFrequencyData(this.dataArray);
       let sum = 0;
       for (let i = 0; i < this.dataArray.length; i++) sum += this.dataArray[i];
       const avg = sum / this.dataArray.length;
@@ -618,20 +621,15 @@ export class AppComponent implements AfterViewInit, OnDestroy {
       points.push({ x: Math.cos(angle) * r, y: depth / 2, z: Math.sin(angle) * r });
     }
 
-    const cosRot = Math.cos(this.rotation);
-    const sinRot = Math.sin(this.rotation);
-    const tilt = 0.5;
-    const cosTilt = Math.cos(tilt);
-    const sinTilt = Math.sin(tilt);
-
     const project = (point: { x: number, y: number, z: number }) => {
       // Rotation Matrix Y
-      const x1 = point.x * cosRot - point.z * sinRot;
-      const z1 = point.x * sinRot + point.z * cosRot;
+      const x1 = point.x * Math.cos(this.rotation) - point.z * Math.sin(this.rotation);
+      const z1 = point.x * Math.sin(this.rotation) + point.z * Math.cos(this.rotation);
 
       // Tilt X
-      const y2 = point.y * cosTilt - z1 * sinTilt;
-      const z2 = point.y * sinTilt + z1 * cosTilt;
+      const tilt = 0.5;
+      const y2 = point.y * Math.cos(tilt) - z1 * Math.sin(tilt);
+      const z2 = point.y * Math.sin(tilt) + z1 * Math.cos(tilt);
 
       const scale = perspective / (perspective + z2 + 300);
       return {
