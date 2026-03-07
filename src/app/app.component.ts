@@ -2,10 +2,6 @@ import { Component, ElementRef, ViewChild, AfterViewInit, OnDestroy } from '@ang
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
-interface WindowWithWebkit extends Window {
-  webkitAudioContext?: typeof AudioContext;
-}
-
 @Component({
   selector: 'app-root',
   standalone: true,
