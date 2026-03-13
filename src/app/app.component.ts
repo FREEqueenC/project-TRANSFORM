@@ -461,8 +461,8 @@ export class AppComponent implements AfterViewInit, OnDestroy {
 
     oscillator.type = 'sine'; // Pure tone carrier
 
-    // Base Tone Calculation
-    const baseTone = 220 + (this.frequency * 50);
+    // Base Tone Calculation - use acoustic Hz base so the tone stays audible
+    const baseTone = this.acousticBaseHz || 432;
 
     // Wiring: Osc -> Dynamis -> Analyser -> Out (StereoPanner removed for iPhone compatibility)
     oscillator.connect(dynamisNode);
