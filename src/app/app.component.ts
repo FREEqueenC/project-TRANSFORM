@@ -84,7 +84,7 @@ import { FormsModule } from '@angular/forms';
             </h2>
             
             <div class="font-gnostic text-center text-lg tracking-widest text-magick-100 mb-4 py-2 w-full break-words leading-loose">
-              AAA OOO ZEZORA ZAZZZ AIEOZAZA EEE III ZAIEO ZOACHOE
+              ααα ωωω ζεζωρα ζαζζζ αιεωζαζα εεε ιιι ζαιεω ζωαχωε
             </div>
 
             <div class="flex flex-wrap gap-2 justify-center mb-6 w-full">
@@ -198,10 +198,21 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   acousticBaseHz = 0; // Biological Hz
 
   // -- DATA --
-  cipherTokens = ['AAA', 'OOO', 'ZEZORA', 'ZAZZZ', 'AIEOZAZA', 'EEE', 'III', 'ZAIEO', 'ZOACHOE'];
+  cipherTokens = ['ααα', 'ωωω', 'ζεζωρα', 'ζαζζζ', 'αιεωζαζα', 'εεε', 'ιιι', 'ζαιεω', 'ζωαχωε'];
   activeGroupRange = [-1, -1];
 
   private readonly CYMATIC_FREQUENCIES: Record<string, number> = {
+    // JEU Evocation (Greek script - original)
+    'ααα': 432,
+    'ωωω': 528,
+    'ζεζωρα': 417,
+    'ζαζζζ': 639,
+    'αιεωζαζα': 741,
+    'εεε': 852,
+    'ιιι': 963,
+    'ζαιεω': 396,
+    'ζωαχωε': 432,
+    // JEU Evocation (Latin transliteration)
     'AAA': 432,
     'OOO': 528,
     'ZEZORA': 417,
@@ -273,7 +284,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     }
 
     if (input.includes('VICTORY') || input.includes('DEFAULT') || input.includes('RESET')) {
-      this.cipherTokens = ['AAA', 'OOO', 'ZEZORA', 'ZAZZZ', 'AIEOZAZA', 'EEE', 'III', 'ZAIEO', 'ZOACHOE'];
+      this.cipherTokens = ['ααα', 'ωωω', 'ζεζωρα', 'ζαζζζ', 'αιεωζαζα', 'εεε', 'ιιι', 'ζαιεω', 'ζωαχωε'];
       this.currentHue = 35; // Amber
       return 'PROTOCOL: VICTORY (STANDARD). CIPHER RESET TO JEU EVOCATION.';
     }
@@ -461,8 +472,8 @@ export class AppComponent implements AfterViewInit, OnDestroy {
 
     oscillator.type = 'sine'; // Pure tone carrier
 
-    // Base Tone Calculation
-    const baseTone = 220 + (this.frequency * 50);
+    // Base Tone Calculation - use acoustic Hz base so the tone stays audible
+    const baseTone = this.acousticBaseHz || 432;
 
     // Wiring: Osc -> Dynamis -> Analyser -> Out (StereoPanner removed for iPhone compatibility)
     oscillator.connect(dynamisNode);
