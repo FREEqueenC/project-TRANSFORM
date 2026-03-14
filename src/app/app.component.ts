@@ -2,6 +2,11 @@ import { Component, ElementRef, ViewChild, AfterViewInit, OnDestroy } from '@ang
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
+const GATE_DATA = [0, Math.PI / 2, Math.PI, Math.PI * 1.5].map(angle => ({
+  cos: Math.cos(angle),
+  sin: Math.sin(angle)
+}));
+
 @Component({
   selector: 'app-root',
   standalone: true,
@@ -672,11 +677,9 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     });
 
     // D. DRAW GATES (Reactive Orbs)
-    const gates = [0, Math.PI / 2, Math.PI, Math.PI * 1.5];
-
-    gates.forEach((gateAngle, idx) => {
-      const gx = Math.cos(gateAngle) * r;
-      const gz = Math.sin(gateAngle) * r;
+    GATE_DATA.forEach((gate, idx) => {
+      const gx = gate.cos * r;
+      const gz = gate.sin * r;
       const p = project({ x: gx, y: 0, z: gz });
 
       const pulse = 1 + (this.gateIntensity * 2);
