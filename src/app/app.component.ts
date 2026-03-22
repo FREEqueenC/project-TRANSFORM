@@ -1,6 +1,7 @@
 import { Component, ElementRef, ViewChild, AfterViewInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RangeSliderComponent } from './range-slider.component';
 
 interface WindowWithWebkit extends Window {
   webkitAudioContext: typeof AudioContext;
@@ -9,7 +10,7 @@ interface WindowWithWebkit extends Window {
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RangeSliderComponent],
   template: `
     <div class="relative min-h-screen bg-black font-mono text-magick-500 selection:bg-magick-900" [style.--hue]="currentHue">
 
@@ -42,31 +43,21 @@ interface WindowWithWebkit extends Window {
               RESONANT CAVITY CONFIG (TM010)
             </h2>
             <div class="space-y-4">
-              <div>
-                <label class="block text-xs text-magick-600 mb-1">CAVITY RADIUS (cm)</label>
-                <input
-                  type="range" min="1" max="100" step="0.1"
-                  [value]="radius"
-                  (input)="updateRadius($event)"
-                  class="w-full h-1 bg-magick-900/30 rounded-lg appearance-none cursor-pointer accent-magick-500"
-                />
-                <div class="flex justify-between mt-1">
-                  <span class="text-xs text-magick-800">{{ radius }} cm</span>
-                </div>
-              </div>
+              <app-range-slider
+                label="CAVITY RADIUS (cm)"
+                min="1" max="100" step="0.1"
+                [value]="radius"
+                (valueChange)="updateRadius($event)"
+                unit="cm"
+              ></app-range-slider>
 
-              <div>
-                <label class="block text-xs text-magick-600 mb-1">CAVITY HEIGHT (cm)</label>
-                 <input
-                  type="range" min="1" max="30" step="0.1"
-                  [value]="height"
-                  (input)="updateHeight($event)"
-                  class="w-full h-1 bg-magick-900/30 rounded-lg appearance-none cursor-pointer accent-magick-500"
-                />
-                 <div class="flex justify-between mt-1">
-                  <span class="text-xs text-magick-800">{{ height }} cm</span>
-                </div>
-              </div>
+              <app-range-slider
+                label="CAVITY HEIGHT (cm)"
+                min="1" max="30" step="0.1"
+                [value]="height"
+                (valueChange)="updateHeight($event)"
+                unit="cm"
+              ></app-range-slider>
 
               <div class="flex flex-col pt-2 border-t border-magick-900/30 gap-2">
                 <div class="flex justify-between items-center">
@@ -353,13 +344,13 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     return parseFloat(targetFreqMHz.toFixed(2));
   }
 
-  updateRadius(event: Event) {
-    this.radius = parseFloat((event.target as HTMLInputElement).value);
+  updateRadius(value: number) {
+    this.radius = value;
     this.updateCalculations();
   }
 
-  updateHeight(event: Event) {
-    this.height = parseFloat((event.target as HTMLInputElement).value);
+  updateHeight(value: number) {
+    this.height = value;
   }
 
   resizeCanvas() {
