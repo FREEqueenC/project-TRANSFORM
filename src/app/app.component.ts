@@ -1,6 +1,11 @@
 import { Component, ElementRef, ViewChild, AfterViewInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RangeSliderComponent } from './range-slider.component';
+
+interface WindowWithWebkit extends Window {
+  webkitAudioContext: typeof AudioContext;
+}
 
 const GATE_DATA = [0, Math.PI / 2, Math.PI, Math.PI * 1.5].map(angle => ({
   cos: Math.cos(angle),
@@ -10,7 +15,7 @@ const GATE_DATA = [0, Math.PI / 2, Math.PI, Math.PI * 1.5].map(angle => ({
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RangeSliderComponent],
   template: `
     <div class="relative min-h-screen bg-black font-mono text-magick-500 selection:bg-magick-900" [style.--hue]="currentHue">
 
@@ -43,31 +48,21 @@ const GATE_DATA = [0, Math.PI / 2, Math.PI, Math.PI * 1.5].map(angle => ({
               RESONANT CAVITY CONFIG (TM010)
             </h2>
             <div class="space-y-4">
-              <div>
-                <label class="block text-xs text-magick-600 mb-1">CAVITY RADIUS (cm)</label>
-                <input
-                  type="range" min="1" max="100" step="0.1"
-                  [value]="radius"
-                  (input)="updateRadius($event)"
-                  class="w-full h-1 bg-magick-900/30 rounded-lg appearance-none cursor-pointer accent-magick-500"
-                />
-                <div class="flex justify-between mt-1">
-                  <span class="text-xs text-magick-800">{{ radius }} cm</span>
-                </div>
-              </div>
+              <app-range-slider
+                label="CAVITY RADIUS (cm)"
+                min="1" max="100" step="0.1"
+                [value]="radius"
+                (valueChange)="updateRadius($event)"
+                unit="cm"
+              ></app-range-slider>
 
-              <div>
-                <label class="block text-xs text-magick-600 mb-1">CAVITY HEIGHT (cm)</label>
-                 <input
-                  type="range" min="1" max="30" step="0.1"
-                  [value]="height"
-                  (input)="updateHeight($event)"
-                  class="w-full h-1 bg-magick-900/30 rounded-lg appearance-none cursor-pointer accent-magick-500"
-                />
-                 <div class="flex justify-between mt-1">
-                  <span class="text-xs text-magick-800">{{ height }} cm</span>
-                </div>
-              </div>
+              <app-range-slider
+                label="CAVITY HEIGHT (cm)"
+                min="1" max="30" step="0.1"
+                [value]="height"
+                (valueChange)="updateHeight($event)"
+                unit="cm"
+              ></app-range-slider>
 
               <div class="flex flex-col pt-2 border-t border-magick-900/30 gap-2">
                 <div class="flex justify-between items-center">
@@ -354,13 +349,13 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     return parseFloat(targetFreqMHz.toFixed(2));
   }
 
-  updateRadius(event: Event) {
-    this.radius = parseFloat((event.target as HTMLInputElement).value);
+  updateRadius(value: number) {
+    this.radius = value;
     this.updateCalculations();
   }
 
-  updateHeight(event: Event) {
-    this.height = parseFloat((event.target as HTMLInputElement).value);
+  updateHeight(value: number) {
+    this.height = value;
   }
 
   resizeCanvas() {
@@ -377,7 +372,15 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     if (!this.audioCtx) return;
 
     console.log('Unlocking mobile audio...');
-    // Create and immediately destroy a silent sound
+
+    // Method 1: Play a short silent buffer
+    const buffer = this.audioCtx.createBuffer(1, 1, 22050);
+    const source = this.audioCtx.createBufferSource();
+    source.buffer = buffer;
+    source.connect(this.audioCtx.destination);
+    source.start(0);
+
+    // Method 2: Create and immediately destroy a silent oscillator (as fallback)
     const oscillator = this.audioCtx.createOscillator();
     const gainNode = this.audioCtx.createGain();
     gainNode.gain.value = 0.001; // Nearly silent
@@ -387,7 +390,8 @@ export class AppComponent implements AfterViewInit, OnDestroy {
 
     oscillator.start(this.audioCtx.currentTime);
     oscillator.stop(this.audioCtx.currentTime + 0.01);
-    console.log('Mobile audio unlocked');
+
+    console.log('Mobile audio unlock sequence completed');
   }
 
   // 2. THE RITUAL: Gnostic JEU Protocol (Drone Mode)
@@ -405,18 +409,25 @@ export class AppComponent implements AfterViewInit, OnDestroy {
         if (AudioContextClass) {
           this.audioCtx = new AudioContextClass();
         }
-        console.log('AudioContext created, state:', this.audioCtx?.state);
       }
+
+      if (!this.audioCtx) {
+        throw new Error('Web Audio API is not supported in this browser.');
+      }
+
+      console.log('Initial AudioContext state:', this.audioCtx.state);
+
+      // MOBILE FIX: Unlock audio on mobile browsers (iOS Safari requirement)
+      // Calling this before resume can help some browser versions
+      this.unlockMobileAudio();
 
       // CRITICAL: Explicitly resume AudioContext (required for deployed sites)
       if (this.audioCtx.state === 'suspended') {
         console.log('Resuming suspended AudioContext...');
         await this.audioCtx.resume();
-        console.log('AudioContext resumed, state:', this.audioCtx.state);
       }
 
-      // MOBILE FIX: Unlock audio on mobile browsers (iOS Safari requirement)
-      this.unlockMobileAudio();
+      console.log('AudioContext state after activation:', this.audioCtx.state);
 
       // Verify AudioContext is running
       if (this.audioCtx.state !== 'running') {
