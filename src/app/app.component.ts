@@ -3,6 +3,15 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RangeSliderComponent } from './range-slider.component';
 
+interface WindowWithWebkit extends Window {
+  webkitAudioContext: typeof AudioContext;
+}
+
+const GATE_DATA = [0, Math.PI / 2, Math.PI, Math.PI * 1.5].map(angle => ({
+  cos: Math.cos(angle),
+  sin: Math.sin(angle)
+}));
+
 @Component({
   selector: 'app-root',
   standalone: true,
@@ -363,7 +372,15 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     if (!this.audioCtx) return;
 
     console.log('Unlocking mobile audio...');
-    // Create and immediately destroy a silent sound
+
+    // Method 1: Play a short silent buffer
+    const buffer = this.audioCtx.createBuffer(1, 1, 22050);
+    const source = this.audioCtx.createBufferSource();
+    source.buffer = buffer;
+    source.connect(this.audioCtx.destination);
+    source.start(0);
+
+    // Method 2: Create and immediately destroy a silent oscillator (as fallback)
     const oscillator = this.audioCtx.createOscillator();
     const gainNode = this.audioCtx.createGain();
     gainNode.gain.value = 0.001; // Nearly silent
@@ -373,7 +390,8 @@ export class AppComponent implements AfterViewInit, OnDestroy {
 
     oscillator.start(this.audioCtx.currentTime);
     oscillator.stop(this.audioCtx.currentTime + 0.01);
-    console.log('Mobile audio unlocked');
+
+    console.log('Mobile audio unlock sequence completed');
   }
 
   // 2. THE RITUAL: Gnostic JEU Protocol (Drone Mode)
@@ -391,18 +409,25 @@ export class AppComponent implements AfterViewInit, OnDestroy {
         if (AudioContextClass) {
           this.audioCtx = new AudioContextClass();
         }
-        console.log('AudioContext created, state:', this.audioCtx?.state);
       }
+
+      if (!this.audioCtx) {
+        throw new Error('Web Audio API is not supported in this browser.');
+      }
+
+      console.log('Initial AudioContext state:', this.audioCtx.state);
+
+      // MOBILE FIX: Unlock audio on mobile browsers (iOS Safari requirement)
+      // Calling this before resume can help some browser versions
+      this.unlockMobileAudio();
 
       // CRITICAL: Explicitly resume AudioContext (required for deployed sites)
       if (this.audioCtx.state === 'suspended') {
         console.log('Resuming suspended AudioContext...');
         await this.audioCtx.resume();
-        console.log('AudioContext resumed, state:', this.audioCtx.state);
       }
 
-      // MOBILE FIX: Unlock audio on mobile browsers (iOS Safari requirement)
-      this.unlockMobileAudio();
+      console.log('AudioContext state after activation:', this.audioCtx.state);
 
       // Verify AudioContext is running
       if (this.audioCtx.state !== 'running') {
@@ -663,11 +688,9 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     });
 
     // D. DRAW GATES (Reactive Orbs)
-    const gates = [0, Math.PI / 2, Math.PI, Math.PI * 1.5];
-
-    gates.forEach((gateAngle, idx) => {
-      const gx = Math.cos(gateAngle) * r;
-      const gz = Math.sin(gateAngle) * r;
+    GATE_DATA.forEach((gate, idx) => {
+      const gx = gate.cos * r;
+      const gz = gate.sin * r;
       const p = project({ x: gx, y: 0, z: gz });
 
       const pulse = 1 + (this.gateIntensity * 2);
