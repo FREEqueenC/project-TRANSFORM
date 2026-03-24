@@ -1,0 +1,33 @@
+{
+  "name": "Project NICOLE",
+  "short_name": "NICOLE-T52",
+  "description": "Gnostic Agent Based Retrieval & Intelligence Engine Logic (G.A.B.R.I.E.L.) module.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#050505",
+  "theme_color": "#eab308",
+  "icons": [
+    {
+      "src": "https://picsum.photos/192/192",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://picsum.photos/512/512",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "project_nicole": {
+    "module_id": "T52-RESONANCE",
+    "access_level": 52,
+    "operator_identity": "ASHLEIGH NICOLE WALKER",
+    "cipher_signature": "MNOZANIOJOO",
+    "physics_model": "TM010_CYLINDRICAL",
+    "ide_compatibility": "ANTIGRAVITY_V20",
+    "protocols": [
+      "VICTORY",
+      "BAPTISM_OF_FIRE"
+    ]
+  }
+}
