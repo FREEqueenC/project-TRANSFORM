@@ -1,0 +1,22 @@
+
+--- Results for Quantum_Cymatics__Revealing_Electron_Resonance_Geometry_v1_8.pdf ---
+Pattern (.{0,100}TM010.{0,100}): 0 matches
+Pattern (.{0,100}2\.405.{0,100}): 0 matches
+
+--- Results for CHAP12.pdf ---
+Pattern (.{0,100}TM010.{0,100}): 11 matches
+  > characteristics of electromagnetic oscillations in resonant cavities. Attention is centered on the TM010 mode because it is the most useful mode for particle acceleration. Physical properties of resonator
+  > exp(jωt) and substituting from Eq. (12.43), Rewriting Eq. (12.46), Magnetic field variation for the TM010 mode is plotted in Figure 12.7. The magnetic field is zero on the axis. Moving outward in radius, B
+  > clearly depends on mode structure through the distribution of magnetic fields. The Q value for the TM010 mode of a cylindrical resonant cavity is where the skin depth δ is a function of the frequency and
+  > e stored energy in the cavity, U, is known. The quantity can be calculated from Eq. (12.43) for the TM010 mode; we assume the calculation is performed at the time when magnetic fields are zero. A cylindric
+  > nspection of Figure 2.10 shows that in long cavities, the TE111 mode has a lower frequency than the TM010. Care must be taken not to excite the TE111 mode in parameter regions where there is mode degenerac
+Pattern (.{0,100}2\.405.{0,100}): 7 matches
+  > es 373 Q  d/δ 1  d/R0 (12.48) ∆f/f0  1/Q  3 × 105. U   d 0 dz  R0 0 2πrdr (εE 2 o/2) J 2 0 (2.405r/R0)  (πR 2 0 d) (εE 2 0 /2) J 2 1 (2.405). (12.49) circuits. The capacitance and inductance of ea
+  > ndition of Eq. (12.99) constraints the wavenumber in terms of the free-space wavenumber: where xn = 2.405,5.520,... . Equation (12.102) yields the following dispersion relationship for TM0n modes in a cyli
+  > no propagation. The cutoff frequency of the TM01 mode is  Resonant Cavities and Waveguides 393 ωc  2.405/ εµRo. (12.104) λ  λo / 1  ω2 c/ω2. (12.105) ω/k  1 / εµ 1  ω2 c/ω2. (12.106) Near cutoff, the
+  > r-order TM0n waves. The cutoff frequency for these modes is higher. In the frequency range to , the 2.405/ εµRo 5.520/ εµRo only TM mode that can propagate is the TM01 mode. On the other hand, a complete s
+  > es and Waveguides 397  Resonant Cavities and Waveguides 398 λ  2πδ/∆φ. (12.111) v(phase)  ωo/k  (2.405/∆φ) (δ/R0) c. (12.112) ∆φ  2.405 δ/R0 or λ < R0/2.405. (12.113) 4.In the long wavelength limit ( )
+
+--- Results for Lect21.pdf ---
+Pattern (.{0,100}TM010.{0,100}): 0 matches
+Pattern (.{0,100}2\.405.{0,100}): 0 matches

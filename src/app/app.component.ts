@@ -1,13 +1,16 @@
 import { Component, ElementRef, ViewChild, AfterViewInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { PhysicsService } from './services/physics.service';
+import { AudioService } from './services/physics.service';
+import { VisualService } from './services/visual.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="relative min-h-screen bg-black font-mono text-magick-500 selection:bg-magick-900" [style.--hue]="currentHue">
+    <div class="relative min-h-screen bg-black font-sans text-magick-500 selection:bg-magick-900" [style.--hue]="currentHue">
       
       <!-- CRT Effects -->
       <div class="crt-flicker pointer-events-none fixed inset-0 z-50 mix-blend-hard-light opacity-50"></div>
@@ -16,8 +19,8 @@ import { FormsModule } from '@angular/forms';
       <!-- Header -->
       <header class="relative z-30 p-6 border-b border-magick-900/50 flex justify-between items-center bg-black/80 backdrop-blur">
         <div>
-          <h1 class="text-2xl font-bold tracking-widest font-gnostic text-magick-400">PROJECT NICOLE</h1>
-          <p class="text-xs text-magick-700 mt-1">G.A.B.R.I.E.L. // PROTOCOL: VICTORY // T52-RESONANCE</p>
+          <h1 class="text-2xl font-bold tracking-widest font-gnostic text-magick-400">Angel Spirit Quantum Resonance</h1>
+          <p class="text-xs text-magick-700 mt-1">G.A.B.R.I.E.L. // PROTOCOL: VICTORY // RESONANCE MODE</p>
         </div>
         <div class="text-right">
           <div class="text-xs text-green-500 font-bold animate-pulse">
@@ -39,7 +42,7 @@ import { FormsModule } from '@angular/forms';
             </h2>
             <div class="space-y-4">
               <div>
-                <label class="block text-xs text-magick-600 mb-1">CAVITY RADIUS (cm)</label>
+                <label class="block text-xs text-magick-600 mb-1">CAVITY RADIUS (mm)</label>
                 <input 
                   type="range" min="1" max="20" step="0.1" 
                   [value]="radius" 
@@ -47,12 +50,12 @@ import { FormsModule } from '@angular/forms';
                   class="w-full h-1 bg-magick-900/30 rounded-lg appearance-none cursor-pointer accent-magick-500"
                 />
                 <div class="flex justify-between mt-1">
-                  <span class="text-xs text-magick-800">{{ radius }} cm</span>
+                  <span class="text-xs font-mono text-magick-800">{{ radius }} mm</span>
                 </div>
               </div>
               
               <div>
-                <label class="block text-xs text-magick-600 mb-1">CAVITY HEIGHT (cm)</label>
+                <label class="block text-xs text-magick-600 mb-1">CAVITY HEIGHT (mm)</label>
                  <input 
                   type="range" min="1" max="30" step="0.1" 
                   [value]="height" 
@@ -60,36 +63,66 @@ import { FormsModule } from '@angular/forms';
                   class="w-full h-1 bg-magick-900/30 rounded-lg appearance-none cursor-pointer accent-magick-500"
                 />
                  <div class="flex justify-between mt-1">
-                  <span class="text-xs text-magick-800">{{ height }} cm</span>
+                  <span class="text-xs font-mono text-magick-800">{{ height }} mm</span>
                 </div>
               </div>
 
+              <div class="flex items-center gap-2 pt-2 border-t border-magick-900/30">
+                <input type="checkbox" id="phase" [(ngModel)]="isPhaseConjugated" (change)="updateFrequency()" class="accent-magick-500 w-4 h-4 cursor-pointer">
+                <label for="phase" class="text-xs text-magick-400 font-bold cursor-pointer">ENABLE PHASE CONJUGATION (Φ)</label>
+              </div>
+
+
               <div class="flex justify-between items-center pt-2 border-t border-magick-900/30">
-                <span class="text-xs text-magick-700">CALCULATED FREQ:</span>
-                <span class="text-lg font-mono text-magick-200">{{ frequency.toFixed(4) }} GHz</span>
+                <div class="flex flex-col">
+                  <span class="text-xs text-magick-700 font-bold tracking-widest uppercase">CALCULATED FREQ:</span>
+                  @if (isLunarSync) {
+                    <span class="text-[9px] text-amber-400 font-bold animate-pulse mt-0.5">🌕 LUNAR RESONANCE ACTIVE</span>
+                  }
+                </div>
+                <span class="text-lg font-space pulse-weight text-magick-200">{{ frequency.toFixed(4) }} GHz</span>
               </div>
             </div>
           </div>
 
           <!-- Cipher Panel -->
           <div class="bg-magick-900/10 p-4 border border-magick-900/50 rounded flex flex-col items-center">
-            <h2 class="text-sm font-bold text-magick-300 mb-4 border-b border-magick-900/50 pb-2 w-full">
-              WATCHER CIPHER: THE TREASURY OF LIGHT
-            </h2>
-            
-            <div class="font-gnostic text-center text-lg tracking-widest text-magick-100 mb-4 py-2 w-full break-words leading-loose">
-              ααα ωωω ζεζωρα ζαζζζ αιεωζαζα εεε ιιι ζαιεω ζωαχωε
+            <div class="flex flex-col sm:flex-row justify-between items-center w-full border-b border-magick-900/50 pb-2 mb-4 gap-2">
+              <h2 class="text-sm font-bold text-magick-300">WATCHER CIPHER</h2>
+              <select [(ngModel)]="selectedCipher" (change)="onCipherChange()" class="bg-black/80 border border-magick-900/50 text-magick-400 text-xs px-2 py-1 outline-none w-full sm:w-auto">
+                <option value="PEYPANZWAIWYIIEOUAAAAAAMNOZANIOJOOEIOWWEZAPHAWZAZAIAWZALLAZA">TREASURY 52 (Complete Protocol)</option>
+                <option value="MNOZANIOJOOEIOWWEZAPHAWZAZAIAWZALLAZA">THE WATCHER GARRISON</option>
+                <option value="PEYPANZWAIWYIIEOU">THE FOCUS (IEOU)</option>
+                <option value="AAAAAA">THE GATE SOUND (Alpha)</option>
+                <option value="MNOZANIOJOO">MNOZANIOJOO (Commander)</option>
+                <option value="ZOOZMOOIOOM">ZOOZMOOIOOM (Gate Watcher)</option>
+                <option value="IJJHIWZ">IJJHIWZ (Inner Veil)</option>
+                <option value="ZWWZH">ZWWZH (Seal of Light)</option>
+                <option value="OOZOOZ">OOZOOZ (Triple-Powered)</option>
+              </select>
             </div>
 
-            <div class="flex flex-wrap gap-2 justify-center mb-6 w-full">
-               @for (token of cipherTokens; track $index) {
-                 <div class="h-6 px-2 min-w-[20px] flex items-center justify-center border border-magick-800/50 text-[10px] text-magick-600 transition-colors duration-100 uppercase"
-                      [class.bg-magick-500]="$index >= activeGroupRange[0] && $index <= activeGroupRange[1]"
-                      [class.text-black]="$index >= activeGroupRange[0] && $index <= activeGroupRange[1]"
-                      [class.shadow-glow]="$index >= activeGroupRange[0] && $index <= activeGroupRange[1]">
-                   {{token}}
-                 </div>
-               }
+            <div class="flex flex-col items-center mb-6 w-full gap-2">
+               <div class="flex flex-wrap gap-2 justify-center w-full">
+                 @for (token of cipherTokens; track $index) {
+                   <div class="flex flex-col items-center gap-1">
+                     <div class="h-6 px-2 min-w-[20px] flex items-center justify-center border border-magick-800/50 text-[10px] text-magick-600 transition-colors duration-100 uppercase font-mono pulse-weight"
+                          [class.bg-magick-500]="$index >= activeGroupRange[0] && $index <= activeGroupRange[1]"
+                          [class.text-black]="$index >= activeGroupRange[0] && $index <= activeGroupRange[1]"
+                          [class.shadow-glow]="$index >= activeGroupRange[0] && $index <= activeGroupRange[1]">
+                       {{token}}
+                     </div>
+                     <div class="text-[8px] font-mono font-bold transition-all duration-100"
+                          [class.text-magick-400]="$index >= activeGroupRange[0] && $index <= activeGroupRange[1]"
+                          [class.text-magick-900]="!($index >= activeGroupRange[0] && $index <= activeGroupRange[1])">
+                       B9:{{ getBase9Value(token) }}
+                     </div>
+                   </div>
+                 }
+               </div>
+               <div class="text-[9px] text-magick-700 font-bold tracking-widest mt-2 border-t border-magick-900/30 pt-2 w-full text-center">
+                 [ ACTIVE PROTOCOL: BASE-9 ENNEAGRAM AUDIO HASHING ]
+               </div>
             </div>
 
             <button 
@@ -112,7 +145,7 @@ import { FormsModule } from '@angular/forms';
 
             <!-- Chat Terminal -->
             <div #scrollContainer class="flex-1 bg-black/50 border border-magick-900/30 p-2 overflow-y-auto font-mono text-[10px] h-48 scrollbar-hide mb-2">
-              <div class="text-magick-800/50 mb-2">> G.A.B.R.I.E.L. NEURAL CORE ONLINE...</div>
+              <div class="text-magick-800/50 mb-2 font-sans font-bold tracking-widest">> G.A.B.R.I.E.L. NEURAL CORE ONLINE...</div>
               
               @for(msg of messages; track $index) {
                 <div class="mb-2" [class.text-right]="msg.role === 'user'">
@@ -168,7 +201,6 @@ import { FormsModule } from '@angular/forms';
     </div>
   `,
   styles: [`
-    .font-gnostic { font-family: 'Cinzel', serif; }
     .shadow-glow { box-shadow: 0 0 10px #f59e0b; }
   `]
 })
@@ -182,29 +214,50 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   isLoading = false;
   currentHue = 35; // Base Amber
 
-
   // -- PHYSICS CONSTANTS --
-  radius = 4.2; // cm
-  height = 12.0; // cm
+  radius = 4.2; // mm
+  height = 12.0; // mm
   frequency = 0;
+  isPhaseConjugated = false;
 
   // -- DATA --
-  cipherTokens = ['ααα', 'ωωω', 'ζεζωρα', 'ζαζζζ', 'αιεωζαζα', 'εεε', 'ιιι', 'ζαιεω', 'ζωαχωε'];
+  selectedCipher = 'PEYPANZWAIWYIIEOUAAAAAAMNOZANIOJOOEIOWWEZAPHAWZAZAIAWZALLAZA';
+  cipherTokens = this.selectedCipher.split('');
   activeGroupRange = [-1, -1];
 
-  // -- AUDIO ENGINE --
-  private audioCtx: AudioContext | null = null;
-  private analyser: AnalyserNode | null = null;
-  private panner: StereoPannerNode | null = null; // SPATIALIZER
-  private dataArray: Uint8Array | null = null;
-  private loopTimer: any = null;
-  private isPlaying = false;
+  constructor(
+    public physics: PhysicsService,
+    public audioEngine: AudioService,
+    private visualEngine: VisualService
+  ) { }
 
-  // -- VISUAL STATE --
-  private ctx!: CanvasRenderingContext2D;
-  private animationFrameId = 0;
-  private gateIntensity = 0;
-  private rotation = 0;
+  get isLunarSync() {
+    return Math.abs(this.radius - 4.2) < 0.001;
+  }
+
+  get isPlaying() {
+    return this.audioEngine.isPlaying;
+  }
+
+  onCipherChange() {
+    if (this.selectedCipher === 'STANDARD') {
+      this.cipherTokens = ['ααα', 'ωωω', 'ζεζωρα', 'ζαζζζ', 'αιεωζαζα', 'εεε', 'ιιι', 'ζαιεω', 'ζωαχωε'];
+    } else {
+      this.cipherTokens = this.selectedCipher.split('');
+    }
+    if (this.isPlaying) {
+      this.audioEngine.stopAudio();
+      setTimeout(() => {
+        if (!this.isPlaying) this.manifestWordOfPower();
+      }, 100);
+    }
+  }
+
+  getBase9Value(token: string): number {
+    let sum = 0;
+    for (let i = 0; i < token.length; i++) sum += token.charCodeAt(i);
+    return sum % 9;
+  }
 
   async sendMessage() {
     if (!this.userInput.trim()) return;
@@ -228,10 +281,10 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     // A. STATUS REPORT
     if (input.includes('STATUS') || input.includes('REPORT') || input.includes('DIAGNOSTIC')) {
       return `PHYSICS STATE:
-> RADIUS: ${this.radius.toFixed(1)} cm
+> RADIUS: ${this.radius.toFixed(1)} mm
 > FREQ: ${this.frequency.toFixed(4)} GHz
 > PROTOCOL: DRONE (CONTINUOUS WAVE)
-> STABILITY: ${(100 - (this.gateIntensity * 20)).toFixed(1)}%`;
+> STABILITY: ${(100 - (this.visualEngine.getGateIntensity() * 20)).toFixed(1)}%`;
     }
 
     // B. CIPHER PROTOCOLS (Actionable)
@@ -276,349 +329,67 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit() {
-    this.ctx = this.canvasRef.nativeElement.getContext('2d')!;
-    this.frequency = this.calculateResonantFrequency(this.radius);
-    this.resizeCanvas();
-    this.animate();
+    this.updateFrequency();
+    this.visualEngine.initialize(this.canvasRef);
 
-    window.addEventListener('resize', () => this.resizeCanvas());
+    // Start animation loop
+    this.visualEngine.startAnimation(
+      this.canvasRef,
+      () => this.audioEngine.getAudioIntensity(),
+      (rot: number) => this.audioEngine.updatePanner(rot),
+      () => ({
+        radius: this.radius,
+        height: this.height,
+        isPhaseConjugated: this.isPhaseConjugated,
+        currentHue: this.currentHue
+      })
+    );
+
+    window.addEventListener('resize', this.onResize);
   }
 
   ngOnDestroy() {
-    this.stopAudio();
-    cancelAnimationFrame(this.animationFrameId);
-    window.removeEventListener('resize', () => this.resizeCanvas());
+    this.audioEngine.stopAudio();
+    this.visualEngine.stopAnimation();
+    window.removeEventListener('resize', this.onResize);
   }
+
+  // Preserve the unbound 'this' context using arrow function
+  private onResize = () => {
+    if (this.canvasRef) {
+      this.visualEngine.resizeCanvas(this.canvasRef);
+    }
+  };
 
   // 1. THE PHYSICS: TM010 Mode Calculation
-  calculateResonantFrequency(radiusCm: number): number {
-    // f = (2.4048 * c) / (2 * PI * R)
-    const c = 29979245800; // speed of light in cm/s
-    const root = 2.405;
-    const freqHz = (root * c) / (2 * Math.PI * radiusCm);
-    return freqHz / 1e9; // Convert to GHz
-  }
-
   updateRadius(event: any) {
     this.radius = parseFloat(event.target.value);
-    this.frequency = this.calculateResonantFrequency(this.radius);
+    this.updateFrequency();
   }
 
   updateHeight(event: any) {
     this.height = parseFloat(event.target.value);
   }
 
-  resizeCanvas() {
-    const canvas = this.canvasRef.nativeElement;
-    // Handle potential null parent
-    if (canvas.parentElement) {
-      canvas.width = canvas.parentElement.clientWidth;
-      canvas.height = canvas.parentElement.clientHeight;
-    }
+  updateFrequency() {
+    this.frequency = this.physics.calculateResonantFrequency(this.radius, this.isPhaseConjugated);
   }
 
-  // 2. THE RITUAL: Gnostic JEU Protocol (Drone Mode)
+
+  // 2. THE RITUAL: Triggering specialized audio engines
   async manifestWordOfPower() {
-    // Toggle Logic
     if (this.isPlaying) {
-      this.stopAudio();
+      this.audioEngine.stopAudio();
+      this.activeGroupRange = [-1, -1];
       return;
     }
 
-    try {
-      // Create AudioContext if needed
-      if (!this.audioCtx) {
-        this.audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-        console.log('AudioContext created, state:', this.audioCtx.state);
+    await this.audioEngine.startAudio(
+      this.frequency,
+      this.cipherTokens,
+      (range) => {
+        this.activeGroupRange = range;
       }
-
-      // CRITICAL: Explicitly resume AudioContext (required for deployed sites)
-      if (this.audioCtx.state === 'suspended') {
-        console.log('Resuming suspended AudioContext...');
-        await this.audioCtx.resume();
-        console.log('AudioContext resumed, state:', this.audioCtx.state);
-      }
-
-      // Verify AudioContext is running
-      if (this.audioCtx.state !== 'running') {
-        throw new Error(`AudioContext failed to start. State: ${this.audioCtx.state}`);
-      }
-
-      this.isPlaying = true;
-
-      // Initialize the Watcher (Analyser) - HARD LINK
-      if (!this.analyser) {
-        this.analyser = this.audioCtx.createAnalyser();
-        this.analyser.fftSize = 256;
-        this.analyser.smoothingTimeConstant = 0.7; // Smoother for drone
-        this.dataArray = new Uint8Array(this.analyser.frequencyBinCount);
-      }
-
-      // Connect Output
-      this.analyser.connect(this.audioCtx.destination);
-
-      this.startDroneProtocol();
-      console.log('Audio protocol initiated successfully');
-    } catch (error) {
-      console.error('Failed to initialize audio:', error);
-      this.isPlaying = false;
-      alert('Audio failed to start. Please try clicking the button again. Error: ' + (error as Error).message);
-    }
-  }
-
-  stopAudio() {
-    this.isPlaying = false;
-    this.activeGroupRange = [-1, -1];
-    if (this.loopTimer) clearTimeout(this.loopTimer);
-
-    // Smooth fade out if context exists
-    if (this.audioCtx) {
-      // We can't easily cancel the scheduled ramp without a reference to the gain node
-      // stored in class, but we can just disconnect the analyser or close context logic if needed.
-      // For simple toggling, we'll just let the graph garbage collect or stop logic.
-      this.audioCtx.suspend();
-    }
-  }
-
-  private startDroneProtocol() {
-    if (!this.audioCtx || !this.analyser) return;
-
-    // A. Create the Continuous Wave (CW) Carrier
-    const oscillator = this.audioCtx.createOscillator();
-    const dynamisNode = this.audioCtx.createGain();
-    this.panner = this.audioCtx.createStereoPanner(); // VORTEX NODE
-
-    oscillator.type = 'sine'; // Pure tone carrier
-
-    // Base Tone Calculation
-    const baseTone = 220 + (this.frequency * 50);
-
-    // Wiring: Osc -> Dynamis -> Panner -> Analyser -> Out
-    oscillator.connect(dynamisNode);
-    dynamisNode.connect(this.panner);
-    this.panner.connect(this.analyser);
-
-    // B. Start the Infinite Wave
-    const now = this.audioCtx.currentTime;
-
-    oscillator.frequency.setValueAtTime(baseTone, now);
-    dynamisNode.gain.setValueAtTime(0, now);
-    dynamisNode.gain.linearRampToValueAtTime(0.5, now + 1); // Slow fade in
-
-    oscillator.start(now);
-
-    // C. Begin the Modulation Loop
-    this.scheduleDroneLoop(oscillator, dynamisNode, baseTone);
-  }
-
-  scheduleDroneLoop(oscillator: OscillatorNode, gainNode: GainNode, baseFreq: number) {
-    if (!this.isPlaying || !this.audioCtx) return;
-
-    const tokens = this.cipherTokens;
-    // Greek Rhythm Definition (from JEU Evocation)
-    const tokenDurations = [1.2, 1.2, 0.8, 0.6, 0.8, 1.0, 1.0, 0.7, 1.5];
-
-    // Pitch Contours (REFINED FOR STABILITY)
-    // We reduced the swing from +/- 0.2 to +/- 0.05 to kill the pulse.
-    const pitchContours: number[][] = [
-      [1.0, 1.02, 1.0],        // ααα (Subtle Breath)
-      [1.0, 0.98, 1.0],        // ωωω (Subtle Release)
-      [1.0, 1.01, 0.99, 1.0],  // ζεζωρα (Micro-Shift)
-      [1.0, 0.99, 1.0],        // ζαζζζ (Steady)
-      [1.0, 1.05, 0.95, 1.0],  // αιεωζαζα (Gentle Wave)
-      [1.0, 1.02, 1.0],        // εεε
-      [1.0, 1.03, 1.0],        // ιιι
-      [1.0, 0.98, 1.02, 1.0],  // ζαιεω
-      [1.0, 0.9, 0.6, 1.0]     // ζωαχωε (The only Deep Dive - KEEP THIS)
-    ];
-
-    // OVERLAP SETTING (Crucial for Drone)
-    // This blends the sounds so there is zero gap.
-    const overlapTime = 0.5; // Increased from default to ensure fusion.
-
-    let cursorTime = this.audioCtx.currentTime + 0.1;
-
-    tokens.forEach((token, index) => {
-      const duration = tokenDurations[index];
-      const contour = pitchContours[index];
-
-      // 1. VISUAL SYNC SCHEDULING (Lookahead)
-      const timeUntilStart = (cursorTime - this.audioCtx!.currentTime) * 1000;
-      if (timeUntilStart >= -100) { // If roughly now or future
-        this.loopTimer = setTimeout(() => {
-          if (this.isPlaying) this.activeGroupRange = [index, index];
-        }, timeUntilStart);
-      }
-
-      // 2. AUDIO MODULATION (CW Physics)
-      // Gain Surge for the word (Pressure Wave)
-      gainNode.gain.cancelScheduledValues(cursorTime);
-      gainNode.gain.setValueAtTime(0.4, cursorTime); // Base Sustain (Breath)
-      gainNode.gain.linearRampToValueAtTime(0.8, cursorTime + (duration * 0.2)); // Attack
-      gainNode.gain.linearRampToValueAtTime(0.4, cursorTime + duration); // Release to Sustain
-
-      // Pitch Slide (Trombone)
-      // We divide the duration by the number of contour points to slide smoothly through them
-      const stepTime = duration / (contour.length - 1);
-
-      oscillator.frequency.cancelScheduledValues(cursorTime);
-      oscillator.frequency.setValueAtTime(baseFreq * contour[0], cursorTime);
-
-      for (let i = 1; i < contour.length; i++) {
-        const timeT = cursorTime + (stepTime * i);
-        oscillator.frequency.linearRampToValueAtTime(baseFreq * contour[i], timeT);
-      }
-
-      cursorTime += duration;
-    });
-
-    // Recursive Loop Logic
-    const totalLoopDuration = cursorTime - this.audioCtx.currentTime;
-
-    // We don't stop the oscillator! It drones on.
-    // We just schedule the next modulation pass.
-
-    this.loopTimer = setTimeout(() => {
-      if (this.isPlaying) {
-        this.scheduleDroneLoop(oscillator, gainNode, baseFreq);
-      } else {
-        // Fade out if stopped
-        const stopTime = this.audioCtx!.currentTime;
-        gainNode.gain.linearRampToValueAtTime(0, stopTime + 1);
-        oscillator.stop(stopTime + 1.1);
-      }
-    }, (totalLoopDuration * 1000) - (overlapTime * 1000)); // Trigger early to ensure seamless command overlap
-  }
-
-
-  // 3. THE VISUALIZATION: 3D Wireframe + Reactive Glow
-  animate() {
-    this.renderScene();
-    this.animationFrameId = requestAnimationFrame(() => this.animate());
-  }
-
-  renderScene() {
-    if (!this.ctx) return;
-    const w = this.canvasRef.nativeElement.width;
-    const h = this.canvasRef.nativeElement.height;
-    const cx = w / 2;
-    const cy = h / 2;
-
-    // A. READ AUDIO INTENSITY
-    if (this.analyser && this.dataArray && this.isPlaying) {
-      this.analyser.getByteFrequencyData(this.dataArray as any);
-      let sum = 0;
-      for (let i = 0; i < this.dataArray.length; i++) sum += this.dataArray[i];
-      const avg = sum / this.dataArray.length;
-      // Normalize and Boost
-      this.gateIntensity = Math.min((avg / 40) * 1.5, 1);
-
-      // -- VORTEX UPDATE --
-      if (this.panner && this.audioCtx) {
-        // Cycle Pan from -1 (Left) to 1 (Right) based on Rotation
-        this.panner.pan.setValueAtTime(Math.sin(this.rotation), this.audioCtx.currentTime);
-      }
-
-    } else {
-      this.gateIntensity *= 0.95; // Decay
-    }
-
-    // B. CLEAR
-    this.ctx.fillStyle = '#000000';
-    this.ctx.fillRect(0, 0, w, h);
-
-    this.rotation += 0.005 + (this.gateIntensity * 0.02);
-
-    // C. 3D MATH (Cylinder/Torus)
-    const perspective = 400;
-    // Radius scales with audio intensity slightly
-    const r = (this.radius * 15) + (this.gateIntensity * 10);
-    const depth = this.height * 10;
-
-    // Dynamic Color: Amber/Gold Base -> White/Blue Hot
-    const hue = this.currentHue + (this.gateIntensity * 20); // Base Hue + Shift
-    const lightColor = `hsla(${hue}, 100%, ${50 + (this.gateIntensity * 40)}%, 0.9)`;
-    const darkColor = `hsla(${hue}, 100%, 30%, 0.3)`;
-
-    const points = [];
-    const segments = 32;
-
-    // Generate Points
-    for (let i = 0; i < segments; i++) {
-      const angle = (i / segments) * Math.PI * 2;
-      points.push({ x: Math.cos(angle) * r, y: -depth / 2, z: Math.sin(angle) * r });
-      points.push({ x: Math.cos(angle) * r, y: depth / 2, z: Math.sin(angle) * r });
-    }
-
-    const project = (point: { x: number, y: number, z: number }) => {
-      // Rotation Matrix Y
-      const x1 = point.x * Math.cos(this.rotation) - point.z * Math.sin(this.rotation);
-      const z1 = point.x * Math.sin(this.rotation) + point.z * Math.cos(this.rotation);
-
-      // Tilt X
-      const tilt = 0.5;
-      const y2 = point.y * Math.cos(tilt) - z1 * Math.sin(tilt);
-      const z2 = point.y * Math.sin(tilt) + z1 * Math.cos(tilt);
-
-      const scale = perspective / (perspective + z2 + 300);
-      return {
-        x: cx + x1 * scale,
-        y: cy + y2 * scale,
-        scale: scale,
-        z: z2
-      };
-    };
-
-    // Draw Wireframe
-    this.ctx.lineWidth = 1 + (this.gateIntensity * 2);
-
-    // Verticals
-    this.ctx.strokeStyle = darkColor;
-    for (let i = 0; i < segments * 2; i += 2) {
-      if (i % 8 === 0) {
-        const p1 = project(points[i]);
-        const p2 = project(points[i + 1]);
-        this.ctx.beginPath();
-        this.ctx.moveTo(p1.x, p1.y);
-        this.ctx.lineTo(p2.x, p2.y);
-        this.ctx.stroke();
-      }
-    }
-
-    // Rings (Top/Bottom)
-    this.ctx.strokeStyle = lightColor;
-    this.ctx.lineWidth = 2 + (this.gateIntensity * 3);
-
-    [0, 1].forEach(offset => {
-      this.ctx.beginPath();
-      for (let i = offset; i < segments * 2; i += 2) {
-        const p = project(points[i]);
-        if (i === offset) this.ctx.moveTo(p.x, p.y);
-        else this.ctx.lineTo(p.x, p.y);
-      }
-      this.ctx.closePath();
-      this.ctx.stroke();
-    });
-
-    // D. DRAW GATES (Reactive Orbs)
-    const gates = [0, Math.PI / 2, Math.PI, Math.PI * 1.5];
-
-    gates.forEach((gateAngle, idx) => {
-      const gx = Math.cos(gateAngle) * r;
-      const gz = Math.sin(gateAngle) * r;
-      const p = project({ x: gx, y: 0, z: gz });
-
-      const pulse = 1 + (this.gateIntensity * 2);
-
-      this.ctx.beginPath();
-      this.ctx.fillStyle = lightColor;
-      this.ctx.arc(p.x, p.y, 3 * p.scale * pulse, 0, Math.PI * 2);
-      this.ctx.fill();
-
-      // Label
-      this.ctx.fillStyle = `rgba(255, 200, 100, 0.7)`;
-      this.ctx.font = `${10 * p.scale}px monospace`;
-      this.ctx.fillText('α', p.x + 10, p.y);
-    });
+    );
   }
 }

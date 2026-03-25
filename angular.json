@@ -18,6 +18,7 @@
             },
             "browser": "src/main.ts",
             "index": "src/index.html",
+            "styles": ["src/styles.css"],
             "tsConfig": "tsconfig.json",
             "assets": [
               {
@@ -56,5 +57,8 @@
         }
       }
     }
+  },
+  "cli": {
+    "analytics": false
   }
 }
